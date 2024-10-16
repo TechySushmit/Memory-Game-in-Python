@@ -265,7 +265,7 @@ class MemoryGameUI:
             design_canvas.create_line(i, 0, i, 100, fill=color)
 
         
-        # Write "Created by Sushmit" in a beautiful cursive handwriting with a contrasting color
+        # Write "All the best!" in a beautiful cursive handwriting with a contrasting color (black & white)
         design_canvas.create_text(150, 50, text="All the Best!", font=("Brush Script MT", 40, "bold"), fill="black")
         design_canvas.create_text(152, 52, text="All the Best!", font=("Brush Script MT", 40, "bold"), fill="white")
 
@@ -293,7 +293,7 @@ class MemoryGameUI:
     def update_time(self):
         elapsed_time = time.time() - self.start_time
         self.time_label.config(text=f"Time: {int(elapsed_time)} s")
-        self.root.after(1000, self.update_time)  # Update every 1s
+        self.root.after(1000, self.update_time)  # Update every 1000ms = 1s
 
     def draw_board(self):
         # Get current board state and draw it on the canvas
