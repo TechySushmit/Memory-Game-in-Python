@@ -19,7 +19,7 @@ pip install -r requirements.txt
 python3 main.py
 ```
 ## Important Note on Code Usage
-<b>Please note:</b> Copying code from this repository without proper acknowledgment is a breach of the "Don't Be Lazy" License (MIT). Be original, or at least credit your sources!
+<b>Please note:</b> Copying code from this repository without proper acknowledgment is a breach of the "Don't Be Lazy" License. Be original, or at least credit your sources!
 
 ## GitHub Repository
 [Memory Game in Python](https://github.com/TechySushmit/Memory-Game-in-Python)
