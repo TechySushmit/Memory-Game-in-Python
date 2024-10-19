@@ -1,23 +1,35 @@
-import tkinter as tk
-from tkinter import messagebox, simpledialog, ttk
-from game_logic import MemoryGame
-from file_manager import ScoreManager
-import time
-import pygame
-import random
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from PIL import Image, ImageTk
+import tkinter as tk                                             # Import the tkinter library for creating the user interface (GUI)
+from tkinter import messagebox, simpledialog, ttk                # Import messagebox, simpledialog, and ttk modules from tkinter
+from game_logic import MemoryGame                                # Import the MemoryGame class for game logic
+from file_manager import ScoreManager                            # Import the ScoreManager class for saving and retrieving scores
+import time                                                      # Import the time module for tracking game time
+import pygame                                                    # Import the pygame library for sound effects
+import random                                                    # Import the random module for generating random messages
+import pandas as pd                                              # Import the pandas library for data manipulation and analysis
+import numpy as np                                               # Import the numpy library for numerical operations (e.g., interpolation)
+import matplotlib.pyplot as plt                                  # Import the matplotlib library for plotting graphs
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg  # Import the FigureCanvasTkAgg class for embedding plots in Tkinter
+from PIL import Image, ImageTk                                   # Import the Image and ImageTk modules from the PIL library for image processing
 
+# Create a class for the Memory Game UI
+
+# The MemoryGameUI class is responsible for creating the user interface of the memory game.
+# It uses the Tkinter library to create windows, frames, labels, buttons, and other GUI elements.
+# The class also handles events such as button clicks, card flips, and game over conditions.
+# It interacts with the MemoryGame class to manage the game logic and scorekeeping.
+# The UI elements are styled using colors, fonts, and images to create an engaging and visually appealing game interface.
+# The class also includes methods for displaying game instructions, player statistics, and credits.
+# It uses the ScoreManager class to save and retrieve player scores from a CSV file.
+
+
+# The MemoryGameUI class has the following attributes and methods:
 class MemoryGameUI:
     def __init__(self, root):
         # Initialize pygame mixer for sound effects
-        pygame.mixer.init()
-        self.flip_sound = pygame.mixer.Sound('audio\switch.wav')
-        self.match_sound = pygame.mixer.Sound('audio\match.wav')
-        self.error_sound = pygame.mixer.Sound('audio\error.mp3')
+        pygame.mixer.init() 
+        self.flip_sound = pygame.mixer.Sound(r'audio\switch.wav')
+        self.match_sound = pygame.mixer.Sound(r'audio\match.wav') 
+        self.error_sound = pygame.mixer.Sound(r'audio\error.mp3') 
 
         # Set volume levels for sound effects
         self.flip_sound.set_volume(0.7)
@@ -54,35 +66,47 @@ class MemoryGameUI:
 
     def center_window(self, window=None):
         # Center the window on the screen
+
         if window is None:
+        # If no window is provided, use the main/root window (self.root) as the default.
+            
             window = self.root
+
         screen_width = window.winfo_screenwidth()
         screen_height = window.winfo_screenheight()
+
+        # Calculate the x and y coordinates to center the window
         x = (screen_width/2) - (1000/2)
         y = (screen_height/2) - (600/2)
+
+        # Set the window position
         window.geometry(f'1000x600+{int(x)}+{int(y)}')
 
+    # Add a method to create the initial screen with game instructions and buttons
     def create_initial_screen(self):
+
         # Clear existing widgets
         for widget in self.root.winfo_children():
-            widget.destroy()
+            widget.destroy() # Destroy all widgets in the main window
+            # This will clear the screen and remove all widgets (button, label, entry, frame, canvas, etc)from the main window.
 
-        # Create main frame for initial screen
+         # Create main frame for initial screen
         self.initial_frame = tk.Frame(self.root, bg=self.colors['background'])
-        self.initial_frame.pack(fill="both", expand=True)
-        
+        self.initial_frame.pack(fill="both", expand=True) # both means horizonatlly and vertically
+        # Fill the entire window with the frame and expand it to fill any extra space
+    
         # Load and display the game title image
-        image = Image.open("memory_game_title.png") 
-        image = image.resize((int(1930/4), int(984/4)), Image.Resampling.LANCZOS)
-        photo = ImageTk.PhotoImage(image)
+        image = Image.open("memory_game_title.png")
+        image = image.resize((int(1930 / 4), int(984 / 4)), Image.Resampling.LANCZOS)
+        # LANCZOS is a resampling filter like ANTIALIAS that helps to maintain high picture quality despite decrement in dimesnions.  
         
+        photo = ImageTk.PhotoImage(image)
         title_label = tk.Label(self.initial_frame, image=photo, bg=self.colors['background'])
-        title_label.image = photo  # Keep a reference
-        title_label.pack(pady=(30, 15))
-
+        title_label.image = photo  # Keep a reference beacuse Python's garbage collector will delete it otherwise
+        title_label.pack(pady=(30, 15))  # Add some padding to the top and bottom respectively
+    
         # Add game instructions
         instructions = """
-
         How to Play: \n
         1. Click on a card to reveal its symbol.
         2. Click on another card to find its match.
@@ -91,38 +115,40 @@ class MemoryGameUI:
         5. Remember the positions of the cards and try to 
             match all pairs in the fewest moves and the 
             shortest time possible.
-
         """
-
         instructions_label = tk.Label(self.initial_frame, text=instructions, font=("Arial", 15), bg=self.colors['background'], fg=self.colors['text'], justify=tk.LEFT, wraplength=500)
         instructions_label.pack(pady=18)
-
-        
+    
         good_luck_label = tk.Label(self.initial_frame, text="Good Luck and Have Fun!", font=("Arial", 17, "bold"), bg=self.colors['background'], fg=self.colors['text'])
         good_luck_label.pack(pady=15)
-
-        # Add buttons for starting a new game, viewing history, showing stats and credits
+    
+        # Add buttons for starting a new game, viewing history, and showing stats
         button_frame = tk.Frame(self.initial_frame, bg=self.colors['background'])
         button_frame.pack(pady=15)
-
+    
         new_game_button = tk.Button(button_frame, text="New Game", font=("Arial", 16, "bold"), bg=self.colors['button'], fg=self.colors['button_text'], command=self.start_new_game, padx=15, pady=8)
         new_game_button.pack(side=tk.LEFT, padx=15)
-
+    
         history_button = tk.Button(button_frame, text="View History", font=("Arial", 16, "bold"), bg=self.colors['button'], fg=self.colors['button_text'], command=self.show_history, padx=15, pady=8)
         history_button.pack(side=tk.LEFT, padx=15)
-
+    
         stats_button = tk.Button(button_frame, text="Player Stats", font=("Arial", 16, "bold"), bg=self.colors['button'], fg=self.colors['button_text'], command=self.show_player_stats, padx=15, pady=8)
         stats_button.pack(side=tk.LEFT, padx=15)
-
-        credits_button = tk.Button(button_frame, text="Credits", font=("Arial", 16, "bold"), bg=self.colors['button'], fg=self.colors['button_text'], command=self.show_credits, padx=15, pady=8)
-        credits_button.pack(side=tk.LEFT, padx=15)
+    
+        # Add the Credits button on the next line with a different color scheme
+        credits_button_frame = tk.Frame(self.initial_frame, bg=self.colors['background'])
+        credits_button_frame.pack(pady=15)
+    
+        credits_button = tk.Button(credits_button_frame, text="Credits", font=("Arial", 16, "bold"), bg=self.colors['button_text'], fg="white", command=self.show_credits, padx=15, pady=8)
+        credits_button.pack()
+ 
 
     def show_credits(self):
         # Create a new window for credits
         credits_window = tk.Toplevel(self.root)
         credits_window.title("Credits")
         credits_window.iconbitmap('game.ico')
-        credits_window.geometry("600x400")
+        credits_window.geometry("1000x600")
         credits_window.configure(bg=self.colors['background'])
         self.center_window(credits_window)
 
@@ -148,30 +174,53 @@ class MemoryGameUI:
         fact_label = tk.Label(credits_window, text=fun_fact, font=("Arial", 14, "italic"), bg=self.colors['background'], fg=self.colors['text'], justify=tk.CENTER, wraplength=500)
         fact_label.pack(pady=5)  
 
-        # Add a decorative element
+        # Add a gradient background with a thank you message
         canvas = tk.Canvas(credits_window, width=400, height=100, bg=self.colors['background'], highlightthickness=0)
         canvas.pack(pady=20)
 
         # Function to create a gradient color list
         def create_gradient_colors(colors, steps):
             gradient = []
-            for j in range(len(colors) - 1):
-                start_color = colors[j]
-                end_color = colors[j + 1]
-                for i in range(steps):
+            for j in range(len(colors) - 1): # Loop through each pair of colors
+                start_color = colors[j] 
+                end_color = colors[j + 1] 
+                for i in range(steps): # Interpolate between the two colors
+
+                    # interp function from numpy library is used to linearly interpolate between two values 
+                    # (interpolate means to estimate values between two known values)
+
                     r = int(np.interp(i, [0, steps - 1], [int(start_color[1:3], 16), int(end_color[1:3], 16)]))
                     g = int(np.interp(i, [0, steps - 1], [int(start_color[3:5], 16), int(end_color[3:5], 16)]))
                     b = int(np.interp(i, [0, steps - 1], [int(start_color[5:], 16), int(end_color[5:], 16)]))
+                    
+                    # Code without using numpy library:
+
+                        # start_r = int(start_color[1:3], 16)
+                        # start_g = int(start_color[3:5], 16)
+                        # start_b = int(start_color[5:], 16)
+
+                        # end_r = int(end_color[1:3], 16)
+                        # end_g = int(end_color[3:5], 16)
+                        # end_b = int(end_color[5:], 16)
+
+                        # r = int(start_r + (end_r - start_r) * i / (steps - 1))
+                        # g = int(start_g + (end_g - start_g) * i / (steps - 1))
+                        # b = int(start_b + (end_b - start_b) * i / (steps - 1))
+
+                    # Convert RGB to hexadecimal color
                     color = f'#{r:02x}{g:02x}{b:02x}'
+
                     gradient.append(color)
+
             return gradient
        
        
         red_pink = ["#CC313D", "#F7C5CC"]  # Shades of Cherry red & bubblegum pink
-        gradient = create_gradient_colors(red_pink, 100)
+        gradient = create_gradient_colors(red_pink, 100) # Create a gradient of 100 colors
 
         # Draw the gradient background
-        for i, color in enumerate(gradient):
+        for i, color in enumerate(gradient): 
+            # Enumerate() method adds a counter to an iterable and returns it in a form of enumerate object.
             canvas.create_rectangle(i * 8, 0, (i + 1) * 8, 100, fill=color, outline='')
         
         # Add a thank you message
@@ -182,6 +231,7 @@ class MemoryGameUI:
         # Close any existing game windows before starting a new game
         if hasattr(self, 'game_window'):
             self.game_window.destroy()
+
         # Prompt for player name and start a new game
         self.player_name = simpledialog.askstring("Player Name", "Enter your name:", parent=self.root)
         if self.player_name:
@@ -235,6 +285,7 @@ class MemoryGameUI:
         time_icon.grid(row=1, column=0, padx=(0, 8), pady=(8, 0))
         self.time_label = tk.Label(stats_frame, text="Time: 0.00 s", font=("Arial", 18), bg=self.colors['panel'], fg=self.colors['text'])
         self.time_label.grid(row=1, column=1, sticky="w", pady=(8, 0))
+        # Sticky is used to align the text to the left (West)
 
         # Add buttons for Return to Homescreen and New Game
         button_frame = tk.Frame(side_panel, bg=self.colors['panel'])
@@ -247,7 +298,7 @@ class MemoryGameUI:
         new_game_button.pack(pady=5)
         
         
-        # Add a beautiful design
+        # Add a beautiful gradient color design
         design_canvas = tk.Canvas(side_panel, width=300, height=100, bg=self.colors['panel'], highlightthickness=0)
         design_canvas.pack(pady=12)
 
@@ -258,6 +309,8 @@ class MemoryGameUI:
             r = int(np.interp(i, [0, 299], [int(gradient_colors[0][1:3], 16), int(gradient_colors[-1][1:3], 16)]))
             g = int(np.interp(i, [0, 299], [int(gradient_colors[0][3:5], 16), int(gradient_colors[-1][3:5], 16)]))
             b = int(np.interp(i, [0, 299], [int(gradient_colors[0][5:], 16), int(gradient_colors[-1][5:], 16)]))
+            # [0] means the first color and [-1] means the last color
+            
             color = f'#{r:02x}{g:02x}{b:02x}'
             gradient.append(color)
 
@@ -265,7 +318,7 @@ class MemoryGameUI:
             design_canvas.create_line(i, 0, i, 100, fill=color)
 
         
-        # Write "All the best!" in a beautiful cursive handwriting with a contrasting color (black & white)
+        # Write "All the best!" in a beautiful cursive handwriting with a contrasting color
         design_canvas.create_text(150, 50, text="All the Best!", font=("Brush Script MT", 40, "bold"), fill="black")
         design_canvas.create_text(152, 52, text="All the Best!", font=("Brush Script MT", 40, "bold"), fill="white")
 
@@ -283,31 +336,34 @@ class MemoryGameUI:
         fun_fact_label.pack(side=tk.BOTTOM, pady=15)
 
         # Bind click event and initialize game state
-        self.canvas.bind("<Button-1>", self.on_click)
-        self.first_card = None
+        self.canvas.bind("<Button-1>", self.on_click) # Bind the left mouse button click event to the on_click method
+        self.first_card = None # Initialize the first card to None
         self.draw_board()
 
         # Start updating the time
         self.update_time()
 
     def update_time(self):
-        elapsed_time = time.time() - self.start_time
-        self.time_label.config(text=f"Time: {int(elapsed_time)} s")
-        self.root.after(1000, self.update_time)  # Update every 1000ms = 1s
+        # Check if the game window and time_label still exist
+        if hasattr(self, 'game_window') and self.game_window.winfo_exists() and hasattr(self, 'time_label') and self.time_label.winfo_exists():
+            elapsed_time = time.time() - self.start_time
+            self.time_label.config(text=f"Time: {int(elapsed_time)} s")
+            self.root.after(1000, self.update_time)  # Update every 1000ms = 1s
 
     def draw_board(self):
         # Get current board state and draw it on the canvas
         board = self.memory_game.get_board()
-        self.canvas.delete("all")
+        self.canvas.delete("all") # Clear the canvas
         for i in range(self.grid_size):
             for j in range(self.grid_size):
-                x1, y1 = j * self.card_size, i * self.card_size
-                x2, y2 = x1 + self.card_size, y1 + self.card_size
+                x1, y1 = j * self.card_size, i * self.card_size # Top-left corner of the card
+                x2, y2 = x1 + self.card_size, y1 + self.card_size # Bottom-right corner of the card
                 self.canvas.create_rectangle(x1, y1, x2, y2, fill=self.colors['card_back'], outline=self.colors['text'])
                 if board[i][j] != '':
-                    # Draw colorful shapes and emojis instead of alphabets
+                    # Draw colorful shapes/emojis instead of alphabets
                     if board[i][j] == 'A':
                         self.canvas.create_text(x1 + self.card_size/2, y1 + self.card_size/2, text='👽', font=('Arial', 54), fill=self.colors['text'], anchor='center')
+                    # anchor is used to align the text to the center
                     elif board[i][j] == 'B':
                         self.canvas.create_text(x1 + self.card_size/2, y1 + self.card_size/2, text='💗', font=('Arial', 54), fill=self.colors['text'], anchor='center')
                     elif board[i][j] == 'C':
@@ -325,17 +381,17 @@ class MemoryGameUI:
 
     def on_click(self, event):
         # Handle card click events
-        x, y = event.x // self.card_size, event.y // self.card_size
+        x, y = event.x // self.card_size, event.y // self.card_size # Get the row and column of the clicked card
         if self.first_card is None:
             if self.memory_game.flip_card(y, x):
                 self.flip_sound.play()
                 self.first_card = (x, y)
-                self.draw_board()
+                self.draw_board() # Redraw the board after flipping the card to reflect the changes
         else:
             if self.memory_game.flip_card(y, x):
                 self.flip_sound.play()
                 self.draw_board()
-                self.root.after(500, self.check_match, x, y)
+                self.root.after(500, self.check_match, x, y) # Check for a match after 500ms
 
     def check_match(self, x, y):
         # Check if the two flipped cards match
@@ -351,7 +407,7 @@ class MemoryGameUI:
         # Check if the game is over
         if self.memory_game.is_game_over():
             end_time = time.time()
-            time_taken = round(end_time - self.start_time, 2)
+            time_taken = round(end_time - self.start_time, 2) # Round the time to 2 decimal places
             congratulation_messages = [
                 f"Congratulations {self.player_name}! You completed the game in {self.memory_game.get_moves()} moves.",
                 f"Wow, {self.player_name}! You solved the game in {self.memory_game.get_moves()} moves.",
@@ -373,7 +429,7 @@ class MemoryGameUI:
         history_window.title("Score History")
         history_window.iconbitmap('game.ico') 
         history_window.geometry("1000x600")
-        history_window.configure(bg=self.colors['background'])
+        history_window.configure(bg=self.colors['background']) # configure = config
         self.center_window(history_window)  # Center the history window on the screen
 
         # Add a title to the history window
@@ -391,10 +447,13 @@ class MemoryGameUI:
         sort_label.pack(side=tk.LEFT, padx=10)
 
         sort_options = ["Game", "Player", "Moves", "Time Taken", "Date", "Time"]
-        sort_variable = tk.StringVar(sort_frame)
+        sort_variable = tk.StringVar(sort_frame) # Create a variable to store the selected
+        # StringVar() is used to store the selected option from the dropdown menu
         sort_variable.set(sort_options[0])  # Set the default value
 
         sort_menu = ttk.Combobox(sort_frame, textvariable=sort_variable, values=sort_options, state="readonly", width=16, font=("Arial", 12))
+        # Combobox (widget) combines a text field with a dropdown list of options. 
+        # state="readonly" is used to prevent manual input in the text field.
         sort_menu.pack(side=tk.LEFT, padx=10)
 
         sort_button = tk.Button(sort_frame, text="Sort", command=lambda: self.sort_table(table, sort_variable.get()),
@@ -425,9 +484,10 @@ class MemoryGameUI:
 
         # Insert data into the table
         for score in history:
-            table.insert("", "end", values=score)
+            table.insert("", "end", values=score) # Insert a new row with the score data
+            # The first argument is the parent item (empty string means no parent)
 
-        table.pack(fill="both", expand=True)
+        table.pack(fill="both", expand=True) # Fill the entire frame with the table
 
         # Configure colors and fonts for the table
         style = ttk.Style()
@@ -435,8 +495,9 @@ class MemoryGameUI:
         style.configure("Treeview", 
                         background=self.colors['background'],
                         foreground=self.colors['text'],
-                        fieldbackground=self.colors['background'],
+                        fieldbackground=self.colors['background'], #background color of the cell
                         font=('Arial', 13))
+        
         style.configure("Treeview.Heading", 
                         font=('Arial', 14, 'bold'),
                         background=self.colors['button'],
@@ -445,12 +506,17 @@ class MemoryGameUI:
     # Add a method to sort the table based on the selected option
     def sort_table(self, table, sort_option):
         # Sort the table based on the selected option
+        # Determine if the sort option requires numeric sorting
         if sort_option == "Game" or sort_option == "Moves" or sort_option == "Time Taken":
+            # Convert the sort option values to float for numeric sorting
             data = [(float(table.set(child, sort_option)), child) for child in table.get_children('')]
         else:
+            # For non-numeric sorting options, use the string value directly
             data = [(table.set(child, sort_option), child) for child in table.get_children('')]
         
+        # Sort the data based on the sort option
         data.sort()
+        # Reorder the table items based on the sorted data
         for i, (val, child) in enumerate(data):
             table.move(child, '', i)
 
@@ -463,7 +529,7 @@ class MemoryGameUI:
         stats_window.configure(bg=self.colors['background'])
         self.center_window(stats_window)
 
-        # Load and process the data
+        # Load and process the data using pandas
         df = pd.read_csv('scores.csv')
         df['Time Taken'] = pd.to_numeric(df['Time Taken'])
         df['Moves'] = pd.to_numeric(df['Moves'])
@@ -478,8 +544,8 @@ class MemoryGameUI:
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4))
         fig.patch.set_facecolor(self.colors['background'])
 
-        # Define a new color scheme for the bars (Gwen-Spiderman themed)
-        bar_colors = ['#FF69B4', '#00FFFF', '#FF1493', '#1E90FF']
+        # Define a new color scheme for the bars
+        bar_colors = ['#FF69B4', '#00FFFF', '#FF1493', '#1E90FF'] # Pink, Cyan, Deep Pink, Dodger Blue
 
         # Plot average and best moves
         ax1.bar(['Average', 'Best'], [avg_moves, best_moves], color=bar_colors[:2])
@@ -492,14 +558,14 @@ class MemoryGameUI:
         ax2.bar(['Average', 'Best'], [avg_time, best_time], color=bar_colors[:2])
         ax2.set_ylabel('Time (seconds)', color=self.colors['text'])
         ax2.set_title('Time Comparison', color=self.colors['text'])
-        ax2.tick_params(colors=self.colors['text'])
-        ax2.set_facecolor(self.colors['panel'])
+        ax2.tick_params(colors=self.colors['text']) # Set the color of the ticks
+        ax2.set_facecolor(self.colors['panel']) # Set the background color of the subplot
 
         # Add value labels on top of each bar
-        for ax in [ax1, ax2]:
-            for i, v in enumerate(ax.containers[0]):
+        for ax in [ax1, ax2]: # Loop through both subplots
+            for i, v in enumerate(ax.containers[0]): # Loop through each bar in the plot
                 ax.text(v.get_x() + v.get_width()/2, v.get_height(), f'{v.get_height():.2f}',
-                        ha='center', va='bottom', color=self.colors['text'])
+                        ha='center', va='bottom', color=self.colors['text']) # Add the value on top of the bar
 
         # Adjust layout and add the plot to the window
         plt.tight_layout()
@@ -514,8 +580,8 @@ class MemoryGameUI:
         player_label = tk.Label(player_frame, text="Select a player:", font=("Arial", 14), bg=self.colors['background'], fg=self.colors['text'])
         player_label.pack(side=tk.LEFT, padx=10)
 
-        players = df['Player Name'].unique().tolist()
-        player_var = tk.StringVar(player_frame)
+        players = df['Player Name'].unique().tolist() # Get the list of unique player names
+        player_var = tk.StringVar(player_frame) # Create a variable to store the selected player
         player_var.set(players[0] if players else "No players")
 
         player_menu = ttk.Combobox(player_frame, textvariable=player_var, values=players, state="readonly", width=20, font=("Arial", 13))
@@ -523,10 +589,10 @@ class MemoryGameUI:
 
         compare_button = tk.Button(player_frame, text="Compare", command=lambda: self.update_player_stats(fig, ax1, ax2, canvas, df, player_var.get()),
                                    bg=self.colors['button'], fg=self.colors['button_text'], 
-                                   font=("Arial", 14, "bold"), relief=tk.RAISED, bd=3)
+                                   font=("Arial", 14, "bold"), relief=tk.RAISED, bd=3) # relief is used to set the border style
         compare_button.pack(side=tk.LEFT, padx=10)
 
-        # Add some decorative elements
+        # Add some quote for motivation at the bottom
         quote_frame = tk.Frame(stats_window, bg=self.colors['background'])
         quote_frame.pack(side=tk.BOTTOM, fill=tk.X, pady=20)
 
@@ -560,11 +626,16 @@ class MemoryGameUI:
         player_best_time = player_stats['Time Taken'].min()
 
 
-        # Define a new color scheme for the bars using only pinkish purplish shades
-        bar_colors = ['#FF69B4', '#FF1493', '#E6DAC3', '#D2B48C']
+        # Define a new color scheme for the new bars
+        bar_colors = ['#FF69B4', '#FF1493', '#E6DAC3', '#D2B48C'] # Hot Pink, Deep Pink, Pastel Brown, Tan
 
         # Plot moves comparison
         moves_data = [avg_moves, best_moves, player_avg_moves, player_best_moves]
+
+        # Truncate player name if it's too long
+        if len(selected_player) > 10:
+            selected_player = selected_player[:10] + "..."
+
         ax1.bar(['Average', 'Best', f'{selected_player}\nAvg', f'{selected_player}\nBest'], 
                 moves_data,
                 color=bar_colors)
@@ -584,11 +655,11 @@ class MemoryGameUI:
         ax2.set_facecolor(self.colors['panel'])
 
         # Add value labels on top of each bar
-        for ax, data in zip([ax1, ax2], [moves_data, time_data]):
+        for ax, data in zip([ax1, ax2], [moves_data, time_data]): # Zip() function is used to combine two lists
             for i, v in enumerate(ax.containers[0]):
                 ax.text(v.get_x() + v.get_width()/2, v.get_height(), f'{data[i]:.2f}',
                         ha='center', va='bottom', color=self.colors['text'])
 
         # Adjust layout and redraw
-        plt.tight_layout()
-        canvas.draw()
+        plt.tight_layout() # Adjust the layout to prevent overlapping
+        canvas.draw() # Redraw the canvas with the updated plots
