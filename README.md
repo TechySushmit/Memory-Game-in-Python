@@ -10,7 +10,11 @@ git clone https://github.com/TechySushmit/Memory-Game-in-Python.git
 ```
 cd Memory-Game-in-Python
 ```
-3. Run the game:
+3. Install the required modules:
+```
+pip install -r requirements.txt
+```
+5. Run the game:
 ```
 python3 main.py
 ```
