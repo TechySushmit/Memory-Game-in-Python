@@ -16,7 +16,7 @@ pip install -r requirements.txt
 ```
 5. Run the game:
 ```
-python3 main.py
+python main.py
 ```
 ## Important Note on Code Usage
 <b>Please note:</b> Copying code from this repository without proper acknowledgment is a breach of the License. Be original, or at least credit your sources!
